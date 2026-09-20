@@ -11,7 +11,7 @@ enum CLIError: LocalizedError {
 }
 
 enum CLI {
-    static let version = "0.1.2"
+    static let version = "0.1.3"
 
     static func run(arguments: [String]) throws {
         guard let command = arguments.first else {
@@ -23,6 +23,7 @@ enum CLI {
         case "key": try chooseHyperKey()
         case "add": try addBinding()
         case "info": try printInfo()
+        case "reload": try reloadConfiguration()
         case "daemon": try Daemon.run()
         case "version", "--version", "-v": print("kvinta \(version)")
         case "help", "--help", "-h": printHelp()
@@ -47,6 +48,11 @@ enum CLI {
                 print("  Hyper + \(binding.key.uppercased()) -> \(application)")
             }
         }
+    }
+
+    private static func reloadConfiguration() throws {
+        try Daemon.reloadOrStart()
+        print("Configuration reloaded.")
     }
 
     private static func chooseHyperKey() throws {
@@ -149,6 +155,7 @@ enum CLI {
           key    Choose the physical Hyper key
           add    Capture a Hyper shortcut and choose an application
           info   Show version, Hyper key, and bindings
+          reload Reload the configuration
           version  Show the installed version
         """)
     }

@@ -7,6 +7,7 @@ build_app="$project_dir/.build/Kvinta.app"
 install_app="$HOME/Applications/Kvinta.app"
 cli_dir="$HOME/.local/bin"
 config_dir="$HOME/.config/kvinta"
+config_file="$config_dir/config.toml"
 completion_file="$config_dir/completion.zsh"
 zshrc="${ZDOTDIR:-$HOME}/.zshrc"
 launch_agents_dir="$HOME/Library/LaunchAgents"
@@ -32,6 +33,21 @@ launchctl bootout "$launch_domain/$launch_label" 2>/dev/null || true
 
 mkdir -p "$config_dir"
 chmod 700 "$config_dir"
+
+config_notice="# After editing this file manually, run 'kvinta reload' to apply your changes."
+if [[ -f "$config_file" ]]; then
+    first_line=""
+    IFS= read -r first_line < "$config_file" || true
+    if [[ "$first_line" != "$config_notice" ]]; then
+        config_tmp="$(mktemp "$config_dir/config.toml.XXXXXX")"
+        cp -p "$config_file" "$config_tmp"
+        {
+            print -r -- "$config_notice"
+            cat "$config_file"
+        } > "$config_tmp"
+        mv "$config_tmp" "$config_file"
+    fi
+fi
 
 rm -rf "$build_app"
 mkdir -p "$build_app/Contents/MacOS" "$build_app/Contents/Resources"

@@ -18,7 +18,10 @@ Then configure and use Kvinta with:
 kvinta key
 kvinta add
 kvinta info
+kvinta reload
 kvinta --version
 ```
 
 macOS will request Accessibility permission for keyboard interception. Configuration is stored in `~/.config/kvinta/config.toml`.
+
+You can also edit `~/.config/kvinta/config.toml` manually. After saving your changes, run `kvinta reload` to load the new configuration.

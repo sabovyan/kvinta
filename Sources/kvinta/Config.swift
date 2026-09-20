@@ -106,7 +106,7 @@ enum ConfigStore {
             attributes: [.posixPermissions: 0o700]
         )
 
-        var lines: [String] = []
+        var lines = ["# After editing this file manually, run 'kvinta reload' to apply your changes."]
         if let hyperKey = configuration.hyperKey {
             lines.append("hyper_key = \"\(hyperKey.rawValue)\"")
         }

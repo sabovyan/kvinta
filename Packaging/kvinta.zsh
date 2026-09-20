@@ -4,6 +4,7 @@ _kvinta() {
         'key:Choose the physical Hyper key'
         'add:Capture a Hyper shortcut and choose an application'
         'info:Show version, Hyper key, and bindings'
+        'reload:Reload the configuration'
         'version:Show the installed version'
         'help:Show available commands'
     )
