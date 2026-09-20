@@ -29,7 +29,7 @@ enum ConfigError: LocalizedError {
 
 enum ConfigStore {
     static let directory = FileManager.default.homeDirectoryForCurrentUser
-        .appendingPathComponent(".config/sugerkey", isDirectory: true)
+        .appendingPathComponent(".config/kvinta", isDirectory: true)
     static let file = directory.appendingPathComponent("config.toml")
 
     static func load() throws -> Configuration {

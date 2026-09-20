@@ -24,9 +24,9 @@ enum CLI {
         case "add": try addBinding()
         case "info": try printInfo()
         case "daemon": try Daemon.run()
-        case "version", "--version", "-v": print("sugerkey \(version)")
+        case "version", "--version", "-v": print("kvinta \(version)")
         case "help", "--help", "-h": printHelp()
-        default: throw CLIError.message("Unknown command '\(command)'. Run 'sugerkey help'.")
+        default: throw CLIError.message("Unknown command '\(command)'. Run 'kvinta help'.")
         }
     }
 
@@ -73,7 +73,7 @@ enum CLI {
     private static func addBinding() throws {
         var configuration = try ConfigStore.load()
         guard let hyperKey = configuration.hyperKey else {
-            throw CLIError.message("No Hyper key configured. Run 'sugerkey key' first.")
+            throw CLIError.message("No Hyper key configured. Run 'kvinta key' first.")
         }
         guard AccessibilityPermission.request() else { throw KeyboardError.accessibilityRequired }
 
@@ -144,7 +144,7 @@ enum CLI {
 
     private static func printHelp() {
         print("""
-        Usage: sugerkey <command>
+        Usage: kvinta <command>
 
           key    Choose the physical Hyper key
           add    Capture a Hyper shortcut and choose an application

@@ -59,14 +59,14 @@ enum Applications {
         }
 
         guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleIdentifier) else {
-            fputs("sugerkey: application not found: \(bundleIdentifier)\n", stderr)
+            fputs("kvinta: application not found: \(bundleIdentifier)\n", stderr)
             return
         }
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         NSWorkspace.shared.openApplication(at: url, configuration: configuration) { _, error in
             if let error {
-                fputs("sugerkey: failed to launch \(bundleIdentifier): \(error.localizedDescription)\n", stderr)
+                fputs("kvinta: failed to launch \(bundleIdentifier): \(error.localizedDescription)\n", stderr)
             }
         }
     }

@@ -10,7 +10,7 @@ enum KeyboardError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .accessibilityRequired:
-            return "Accessibility permission is required. Enable sugerkey in System Settings > Privacy & Security > Accessibility, then run the command again."
+            return "Accessibility permission is required. Enable Kvinta in System Settings > Privacy & Security > Accessibility, then run the command again."
         case .eventTapUnavailable:
             return "Unable to create a keyboard event tap. Check Accessibility and Input Monitoring permissions."
         case .captureCancelled:

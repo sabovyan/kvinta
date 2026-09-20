@@ -4,6 +4,6 @@ import Foundation
 do {
     try CLI.run(arguments: Array(CommandLine.arguments.dropFirst()))
 } catch {
-    fputs("sugerkey: \(error.localizedDescription)\n", stderr)
+    fputs("kvinta: \(error.localizedDescription)\n", stderr)
     exit(EXIT_FAILURE)
 }

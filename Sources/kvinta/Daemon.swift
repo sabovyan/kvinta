@@ -57,21 +57,21 @@ private func daemonCallback(
 }
 
 enum Daemon {
-    static let launchAgentLabel = "com.sargisabovyan.sugerkey.daemon"
+    static let launchAgentLabel = "com.sargisabovyan.kvinta.daemon"
     static let launchAgentFile = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/LaunchAgents/\(launchAgentLabel).plist")
     static let launchAgentTarget = "gui/\(getuid())/\(launchAgentLabel)"
 
     static func run() throws -> Never {
         if !AccessibilityPermission.request() {
-            fputs("sugerkey: waiting for Accessibility permission\n", stderr)
+            fputs("kvinta: waiting for Accessibility permission\n", stderr)
             while !AccessibilityPermission.isGranted {
                 RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.5))
             }
         }
         let configuration = try ConfigStore.load()
         guard configuration.hyperKey != nil else {
-            throw CLIError.message("No Hyper key configured. Run 'sugerkey key' first.")
+            throw CLIError.message("No Hyper key configured. Run 'kvinta key' first.")
         }
         let context = DaemonContext(configuration: configuration)
         let pointer = Unmanaged.passUnretained(context).toOpaque()
@@ -100,7 +100,7 @@ enum Daemon {
                 context.pauseGeneration += 1
                 CGEvent.tapEnable(tap: tap, enable: true)
             } catch {
-                fputs("sugerkey: config reload failed: \(error.localizedDescription)\n", stderr)
+                fputs("kvinta: config reload failed: \(error.localizedDescription)\n", stderr)
             }
         }
         reloadSource.resume()
@@ -146,7 +146,7 @@ enum Daemon {
         }
         usleep(100_000)
         guard sendSignal("SIGHUP") else {
-            throw CLIError.message("The background process exited during startup. Check ~/Library/Logs/Sugerkey.log.")
+            throw CLIError.message("The background process exited during startup. Check ~/Library/Logs/Kvinta.log.")
         }
     }
 

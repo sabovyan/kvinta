@@ -3,13 +3,13 @@
 import PackageDescription
 
 let package = Package(
-    name: "sugerkey",
+    name: "kvinta",
     platforms: [.macOS(.v13)],
     products: [
-        .executable(name: "sugerkey", targets: ["sugerkey"]),
+        .executable(name: "kvinta", targets: ["kvinta"]),
     ],
     targets: [
-        .executableTarget(name: "sugerkey"),
+        .executableTarget(name: "kvinta"),
     ],
     swiftLanguageModes: [.v5]
 )

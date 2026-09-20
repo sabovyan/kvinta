@@ -1,4 +1,4 @@
-_sugerkey() {
+_kvinta() {
     local -a commands
     commands=(
         'key:Choose the physical Hyper key'
@@ -19,4 +19,4 @@ autoload -Uz compinit
 if (( ! $+functions[compdef] )); then
     compinit
 fi
-compdef _sugerkey sugerkey
+compdef _kvinta kvinta
