@@ -31,7 +31,6 @@ enum ConfigStore {
     static let directory = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent(".config/sugerkey", isDirectory: true)
     static let file = directory.appendingPathComponent("config.toml")
-    static let pidFile = directory.appendingPathComponent("daemon.pid")
 
     static func load() throws -> Configuration {
         guard FileManager.default.fileExists(atPath: file.path) else {

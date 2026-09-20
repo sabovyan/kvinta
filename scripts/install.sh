@@ -14,7 +14,6 @@ launch_domain="gui/$(id -u)"
 launch_label="com.sargisabovyan.sugerkey.daemon"
 legacy_launch_label="com.sugerkey.daemon"
 legacy_launch_agent="$launch_agents_dir/$legacy_launch_label.plist"
-pid_file="$HOME/.config/sugerkey/daemon.pid"
 signing_identity="${SUGERKEY_SIGNING_IDENTITY:-}"
 
 if [[ -z "$signing_identity" ]]; then
@@ -30,16 +29,10 @@ fi
 
 swift build --package-path "$project_dir" -c release
 
-if [[ -f "$pid_file" ]]; then
-    daemon_pid="$(<"$pid_file")"
-    if [[ "$daemon_pid" == <-> ]]; then
-        kill "$daemon_pid" 2>/dev/null || true
-    fi
-fi
-
 launchctl bootout "$launch_domain/$launch_label" 2>/dev/null || true
 launchctl bootout "$launch_domain/$legacy_launch_label" 2>/dev/null || true
 rm -f "$legacy_launch_agent"
+rm -f "$HOME/.config/sugerkey/daemon.pid"
 
 rm -rf "$build_app"
 mkdir -p "$build_app/Contents/MacOS"

@@ -60,6 +60,7 @@ enum Daemon {
     static let launchAgentLabel = "com.sargisabovyan.sugerkey.daemon"
     static let launchAgentFile = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/LaunchAgents/\(launchAgentLabel).plist")
+    static let launchAgentTarget = "gui/\(getuid())/\(launchAgentLabel)"
 
     static func run() throws -> Never {
         if !AccessibilityPermission.request() {
@@ -72,12 +73,6 @@ enum Daemon {
         guard configuration.hyperKey != nil else {
             throw CLIError.message("No Hyper key configured. Run 'sugerkey key' first.")
         }
-        try FileManager.default.createDirectory(
-            at: ConfigStore.directory,
-            withIntermediateDirectories: true,
-            attributes: [.posixPermissions: 0o700]
-        )
-
         let context = DaemonContext(configuration: configuration)
         let pointer = Unmanaged.passUnretained(context).toOpaque()
         guard let tap = CGEvent.tapCreate(
@@ -92,7 +87,6 @@ enum Daemon {
         }
         context.eventTap = tap
 
-        try String(getpid()).write(to: ConfigStore.pidFile, atomically: true, encoding: .utf8)
         let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
 
@@ -130,10 +124,7 @@ enum Daemon {
         signal(SIGINT, SIG_IGN)
         let terminateSource = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
         let interruptSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
-        let terminate = {
-            try? FileManager.default.removeItem(at: ConfigStore.pidFile)
-            exit(EXIT_SUCCESS)
-        }
+        let terminate = { () -> Void in exit(EXIT_SUCCESS) }
         terminateSource.setEventHandler(handler: terminate)
         interruptSource.setEventHandler(handler: terminate)
         terminateSource.resume()
@@ -144,70 +135,48 @@ enum Daemon {
         fatalError("Daemon run loop exited unexpectedly")
     }
 
-    static func runningPID() -> pid_t? {
-        guard let value = try? String(contentsOf: ConfigStore.pidFile, encoding: .utf8),
-              let pid = pid_t(value.trimmingCharacters(in: .whitespacesAndNewlines)),
-              kill(pid, 0) == 0 else {
-            try? FileManager.default.removeItem(at: ConfigStore.pidFile)
-            return nil
-        }
-        return pid
-    }
-
     static func reloadOrStart() throws {
-        if let pid = runningPID() {
-            kill(pid, SIGHUP)
-            return
-        }
+        if sendSignal("SIGHUP") { return }
 
-        if FileManager.default.fileExists(atPath: launchAgentFile.path) {
-            let launchctl = Process()
-            launchctl.executableURL = URL(fileURLWithPath: "/bin/launchctl")
-            launchctl.arguments = ["kickstart", "-k", "gui/\(getuid())/\(launchAgentLabel)"]
-            launchctl.standardInput = FileHandle.nullDevice
-            launchctl.standardOutput = FileHandle.nullDevice
-            launchctl.standardError = FileHandle.nullDevice
-            try launchctl.run()
-            launchctl.waitUntilExit()
-        } else {
-            guard let executable = Bundle.main.executableURL else {
-                throw CLIError.message("Unable to locate the sugerkey executable.")
-            }
-            let process = Process()
-            process.executableURL = executable
-            process.arguments = ["daemon"]
-            process.standardInput = FileHandle.nullDevice
-            process.standardOutput = FileHandle.nullDevice
-            process.standardError = FileHandle.nullDevice
-            try process.run()
+        guard FileManager.default.fileExists(atPath: launchAgentFile.path) else {
+            throw CLIError.message("Background process is not installed. Run './scripts/install.sh'.")
         }
-
-        for _ in 0..<20 {
-            if runningPID() != nil { return }
-            usleep(50_000)
+        guard launchctl(["kickstart", "-k", launchAgentTarget]) else {
+            throw CLIError.message("The background process did not start. Run './scripts/install.sh' again.")
         }
-        throw CLIError.message("The background process did not start. Run 'sugerkey daemon' to see the error.")
+        usleep(100_000)
+        guard sendSignal("SIGHUP") else {
+            throw CLIError.message("The background process exited during startup. Check ~/Library/Logs/Sugerkey.log.")
+        }
     }
 
     static func pauseForCapture() -> Bool {
-        guard let pid = runningPID() else { return false }
-        guard kill(pid, SIGUSR1) == 0 else { return false }
+        guard sendSignal("SIGUSR1") else { return false }
         usleep(100_000)
         return true
     }
 
     static func resumeAfterCapture() {
-        guard let pid = runningPID() else { return }
-        kill(pid, SIGHUP)
+        _ = sendSignal("SIGHUP")
     }
 
-    static func stop() -> Bool {
-        guard let pid = runningPID() else { return false }
-        kill(pid, SIGTERM)
-        for _ in 0..<20 {
-            if kill(pid, 0) != 0 { return true }
-            usleep(50_000)
+    private static func sendSignal(_ name: String) -> Bool {
+        launchctl(["kill", name, launchAgentTarget])
+    }
+
+    private static func launchctl(_ arguments: [String]) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/bin/launchctl")
+        process.arguments = arguments
+        process.standardInput = FileHandle.nullDevice
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+            process.waitUntilExit()
+            return process.terminationStatus == 0
+        } catch {
+            return false
         }
-        return false
     }
 }
