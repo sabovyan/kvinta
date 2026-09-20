@@ -1,4 +1,4 @@
-# Kvinta
+# <img src="Packaging/AppIcon.png" alt="Kvinta icon" width="30" height="30"> Kvinta
 
 Kvinta is a headless macOS utility that uses one physical modifier as Hyper and toggles applications with Hyper shortcuts.
 
