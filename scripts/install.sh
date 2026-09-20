@@ -6,6 +6,8 @@ project_dir="${0:A:h:h}"
 build_app="$project_dir/.build/Sugerkey.app"
 install_app="$HOME/Applications/Sugerkey.app"
 cli_dir="$HOME/.local/bin"
+completion_file="$HOME/.config/sugerkey/completion.zsh"
+zshrc="${ZDOTDIR:-$HOME}/.zshrc"
 launch_agents_dir="$HOME/Library/LaunchAgents"
 launch_agent="$launch_agents_dir/com.sargisabovyan.sugerkey.daemon.plist"
 launch_domain="gui/$(id -u)"
@@ -45,10 +47,18 @@ cp "$project_dir/.build/release/sugerkey" "$build_app/Contents/MacOS/sugerkey"
 cp "$project_dir/Packaging/Info.plist" "$build_app/Contents/Info.plist"
 codesign --force --sign "$signing_identity" "$build_app"
 
-mkdir -p "$HOME/Applications" "$cli_dir" "$launch_agents_dir" "$HOME/Library/Logs"
+mkdir -p "$HOME/Applications" "$cli_dir" "$launch_agents_dir" "$HOME/Library/Logs" "${completion_file:h}"
 rm -rf "$install_app"
 cp -R "$build_app" "$install_app"
 ln -sfn "$install_app/Contents/MacOS/sugerkey" "$cli_dir/sugerkey"
+cp "$project_dir/Packaging/sugerkey.zsh" "$completion_file"
+
+completion_line='[ -s "$HOME/.config/sugerkey/completion.zsh" ] && source "$HOME/.config/sugerkey/completion.zsh"'
+if [[ ! -f "$zshrc" || "$(<"$zshrc")" != *"$completion_line"* ]]; then
+    print >> "$zshrc"
+    print '# Sugerkey shell completion' >> "$zshrc"
+    print -r -- "$completion_line" >> "$zshrc"
+fi
 
 cat > "$launch_agent" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
@@ -81,6 +91,7 @@ launchctl bootstrap "$launch_domain" "$launch_agent"
 print "Installed Sugerkey.app in $HOME/Applications."
 print "Signed with: $signing_identity"
 print "The 'sugerkey' command is available at $cli_dir/sugerkey."
+print "Zsh completion is installed. Open a new terminal to enable it."
 if [[ ":$PATH:" != *":$cli_dir:"* ]]; then
     print "Add $cli_dir to PATH before using the command."
 fi
