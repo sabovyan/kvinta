@@ -11,7 +11,7 @@ enum CLIError: LocalizedError {
 }
 
 enum CLI {
-    static let version = "0.1"
+    static let version = "0.1.1"
 
     static func run(arguments: [String]) throws {
         guard let command = arguments.first else {
@@ -22,10 +22,30 @@ enum CLI {
         switch command {
         case "key": try chooseHyperKey()
         case "add": try addBinding()
+        case "info": try printInfo()
         case "daemon": try Daemon.run()
         case "version", "--version", "-v": print("sugerkey \(version)")
         case "help", "--help", "-h": printHelp()
         default: throw CLIError.message("Unknown command '\(command)'. Run 'sugerkey help'.")
+        }
+    }
+
+    private static func printInfo() throws {
+        let configuration = try ConfigStore.load()
+        let applications = Dictionary(uniqueKeysWithValues: Applications.installed().map {
+            ($0.bundleIdentifier, $0.name)
+        })
+
+        print("Version: \(version)")
+        print("Hyper key: \(configuration.hyperKey?.displayName ?? "Not configured")")
+        print("Bindings:")
+        if configuration.bindings.isEmpty {
+            print("  None")
+        } else {
+            for binding in configuration.bindings {
+                let application = applications[binding.app].map { "\($0) (\(binding.app))" } ?? binding.app
+                print("  Hyper + \(binding.key.uppercased()) -> \(application)")
+            }
         }
     }
 
@@ -128,6 +148,7 @@ enum CLI {
 
           key    Choose the physical Hyper key
           add    Capture a Hyper shortcut and choose an application
+          info   Show version, Hyper key, and bindings
           version  Show the installed version
         """)
     }

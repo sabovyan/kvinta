@@ -17,6 +17,7 @@ Then configure and use Sugerkey with:
 ```sh
 sugerkey key
 sugerkey add
+sugerkey info
 sugerkey --version
 ```
 
