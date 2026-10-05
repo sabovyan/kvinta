@@ -35,7 +35,7 @@ final class DaemonContext: NSObject {
         quitItem.target = self
         menu.addItem(quitItem)
 
-        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         item.menu = menu
         statusItem = item
         stateMenuItem = stateItem
@@ -78,9 +78,13 @@ final class DaemonContext: NSObject {
         stateMenuItem?.title = state
         pauseMenuItem?.title = userPaused ? "Resume" : "Pause"
         if let button = statusItem?.button {
-            button.image = NSImage(systemSymbolName: shouldIntercept ? "keyboard" : "pause.circle", accessibilityDescription: state)
-            button.image?.isTemplate = true
-            button.title = button.image == nil ? "Kvinta" : ""
+            let image = shouldIntercept
+                ? NSImage(named: NSImage.applicationIconName)?.copy() as? NSImage
+                : NSImage(systemSymbolName: "pause.circle", accessibilityDescription: state)
+            image?.size = NSSize(width: 18, height: 18)
+            image?.isTemplate = !shouldIntercept
+            button.image = image
+            button.title = image == nil ? "K" : ""
             button.toolTip = "Kvinta — \(state)"
             button.setAccessibilityLabel("Kvinta — \(state)")
         }
