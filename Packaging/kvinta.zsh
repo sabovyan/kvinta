@@ -5,6 +5,8 @@ _kvinta() {
         'add:Capture a Hyper shortcut and choose an application'
         'info:Show version, Hyper key, and bindings'
         'start:Start Kvinta without changing a running session'
+        'stop:Stop Kvinta'
+        'quit:Stop Kvinta (alias for stop)'
         'reload:Reload the configuration'
         'version:Show the installed version'
         'help:Show available commands'

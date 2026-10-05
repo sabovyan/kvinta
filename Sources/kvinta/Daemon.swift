@@ -247,6 +247,12 @@ enum Daemon {
         }
     }
 
+    static func stop() throws {
+        guard sendSignal("SIGTERM") else {
+            throw CLIError.message("Could not stop Kvinta. The background process may not be running.")
+        }
+    }
+
     static func pauseForCapture() -> Bool {
         guard sendSignal("SIGUSR1") else { return false }
         usleep(100_000)

@@ -29,6 +29,8 @@ You can also edit `~/.config/kvinta/config.toml` manually. After saving your cha
 
 Use `kvinta start` to start a stopped daemon. If it is already running, start leaves its configuration and pause state unchanged. Opening Kvinta from Spotlight or Finder uses the same start behavior. `kvinta reload` applies configuration changes and also starts the daemon if it is stopped.
 
+Use `kvinta stop` or its alias `kvinta quit` to request graceful shutdown from Terminal, just like **Quit Kvinta** in the menu bar. If the stop request cannot be sent, the command reports an error. Run `kvinta start` to start it again; it also starts at the next login.
+
 ## Pause or quit with the mouse
 
 Click the Kvinta icon in the menu bar to open Kvinta’s menu. Choose **Pause** to disable keyboard interception, **Resume** to enable it again, or **Quit Kvinta** to stop the daemon. The icon has a green checkmark badge when shortcuts are active and a gray pause badge when interception is disabled.

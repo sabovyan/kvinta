@@ -48,6 +48,9 @@ enum CLI {
         case "start":
             try Daemon.start()
             print("Kvinta start requested.")
+        case "stop", "quit":
+            try Daemon.stop()
+            print("Kvinta stop requested.")
         case "reload": try reloadConfiguration()
         case "daemon": try Daemon.run()
         case "version", "--version", "-v": print("kvinta \(version)")
@@ -181,6 +184,7 @@ enum CLI {
           add    Capture a Hyper shortcut and choose an application
           info   Show version, Hyper key, and bindings
           start  Start Kvinta without changing a running session
+          stop   Stop Kvinta (alias: quit)
           reload Reload the configuration
           version  Show the installed version
         """)
