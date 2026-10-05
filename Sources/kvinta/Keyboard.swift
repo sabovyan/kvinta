@@ -32,9 +32,9 @@ enum AccessibilityPermission {
 
 private final class CaptureContext {
     let hyperKey: HyperKey
-    var hyperDown = false
     var result: String?
     var runLoop: CFRunLoop?
+    var eventTap: CFMachPort?
 
     init(hyperKey: HyperKey) {
         self.hyperKey = hyperKey
@@ -49,14 +49,17 @@ private func captureCallback(
 ) -> Unmanaged<CGEvent>? {
     guard let userInfo else { return Unmanaged.passUnretained(event) }
     let context = Unmanaged<CaptureContext>.fromOpaque(userInfo).takeUnretainedValue()
+    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+        if let tap = context.eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
+        return Unmanaged.passUnretained(event)
+    }
     let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
 
     if type == .flagsChanged, keyCode == context.hyperKey.keyCode {
-        context.hyperDown = event.flags.contains(context.hyperKey.modifierFlag)
         return nil
     }
 
-    if type == .keyDown, context.hyperDown {
+    if type == .keyDown, context.hyperKey.isPressed(in: event.flags) {
         if event.getIntegerValueField(.keyboardEventAutorepeat) == 0,
            let key = KeyCodes.name(for: keyCode) {
             context.result = key
@@ -65,7 +68,7 @@ private func captureCallback(
         return nil
     }
 
-    if type == .keyUp, context.hyperDown { return nil }
+    if type == .keyUp, context.hyperKey.isPressed(in: event.flags) { return nil }
     return Unmanaged.passUnretained(event)
 }
 
@@ -86,6 +89,7 @@ enum ShortcutCapture {
         ) else {
             throw KeyboardError.eventTapUnavailable
         }
+        context.eventTap = tap
 
         guard let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0) else {
             throw KeyboardError.eventTapUnavailable

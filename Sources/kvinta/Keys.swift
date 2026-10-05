@@ -1,4 +1,5 @@
 import CoreGraphics
+import IOKit.hidsystem
 
 enum HyperKey: String, CaseIterable, Sendable {
     case rightOption = "right_option"
@@ -25,6 +26,21 @@ enum HyperKey: String, CaseIterable, Sendable {
         case .rightControl, .leftControl: return .maskControl
         case .rightCommand, .leftCommand: return .maskCommand
         }
+    }
+
+    func isPressed(in flags: CGEventFlags) -> Bool {
+        let deviceMask: Int32
+        switch self {
+        case .rightOption: deviceMask = NX_DEVICERALTKEYMASK
+        case .leftOption: deviceMask = NX_DEVICELALTKEYMASK
+        case .rightControl: deviceMask = NX_DEVICERCTLKEYMASK
+        case .leftControl: deviceMask = NX_DEVICELCTLKEYMASK
+        case .rightCommand: deviceMask = NX_DEVICERCMDKEYMASK
+        case .leftCommand: deviceMask = NX_DEVICELCMDKEYMASK
+        }
+        // Aggregate flags alone cannot identify the physical side. Fail open if
+        // an event lacks side-specific flags rather than retaining stale state.
+        return flags.contains(modifierFlag) && flags.rawValue & UInt64(deviceMask) != 0
     }
 
     var displayName: String {

@@ -5,7 +5,6 @@ import Foundation
 
 private final class DaemonContext {
     var configuration: Configuration
-    var hyperDown = false
     var suppressedKeys: Set<CGKeyCode> = []
     var eventTap: CFMachPort?
     var pauseGeneration = 0
@@ -25,7 +24,6 @@ private func daemonCallback(
     let context = Unmanaged<DaemonContext>.fromOpaque(userInfo).takeUnretainedValue()
 
     if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
-        context.hyperDown = false
         context.suppressedKeys.removeAll()
         if let tap = context.eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
         return Unmanaged.passUnretained(event)
@@ -37,11 +35,10 @@ private func daemonCallback(
     let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
 
     if type == .flagsChanged, keyCode == hyperKey.keyCode {
-        context.hyperDown = event.flags.contains(hyperKey.modifierFlag)
         return nil
     }
 
-    if type == .keyDown, context.hyperDown {
+    if type == .keyDown, hyperKey.isPressed(in: event.flags) {
         context.suppressedKeys.insert(keyCode)
         if event.getIntegerValueField(.keyboardEventAutorepeat) == 0,
            let key = KeyCodes.name(for: keyCode),
@@ -97,7 +94,6 @@ enum Daemon {
         reloadSource.setEventHandler {
             do {
                 context.configuration = try ConfigStore.load()
-                context.hyperDown = false
                 context.suppressedKeys.removeAll()
                 context.pauseGeneration += 1
                 CGEvent.tapEnable(tap: tap, enable: true)
@@ -110,7 +106,6 @@ enum Daemon {
         signal(SIGUSR1, SIG_IGN)
         let pauseSource = DispatchSource.makeSignalSource(signal: SIGUSR1, queue: .main)
         pauseSource.setEventHandler {
-            context.hyperDown = false
             context.suppressedKeys.removeAll()
             context.pauseGeneration += 1
             let generation = context.pauseGeneration
