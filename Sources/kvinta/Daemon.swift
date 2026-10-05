@@ -25,6 +25,8 @@ private func daemonCallback(
     let context = Unmanaged<DaemonContext>.fromOpaque(userInfo).takeUnretainedValue()
 
     if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+        context.hyperDown = false
+        context.suppressedKeys.removeAll()
         if let tap = context.eventTap { CGEvent.tapEnable(tap: tap, enable: true) }
         return Unmanaged.passUnretained(event)
     }
@@ -35,7 +37,7 @@ private func daemonCallback(
     let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
 
     if type == .flagsChanged, keyCode == hyperKey.keyCode {
-        context.hyperDown.toggle()
+        context.hyperDown = event.flags.contains(hyperKey.modifierFlag)
         return nil
     }
 

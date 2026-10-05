@@ -19,6 +19,14 @@ enum HyperKey: String, CaseIterable, Sendable {
         }
     }
 
+    var modifierFlag: CGEventFlags {
+        switch self {
+        case .rightOption, .leftOption: return .maskAlternate
+        case .rightControl, .leftControl: return .maskControl
+        case .rightCommand, .leftCommand: return .maskCommand
+        }
+    }
+
     var displayName: String {
         rawValue.split(separator: "_").map { $0.capitalized }.joined(separator: " ")
     }

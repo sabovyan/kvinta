@@ -52,7 +52,7 @@ private func captureCallback(
     let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
 
     if type == .flagsChanged, keyCode == context.hyperKey.keyCode {
-        context.hyperDown.toggle()
+        context.hyperDown = event.flags.contains(context.hyperKey.modifierFlag)
         return nil
     }
 

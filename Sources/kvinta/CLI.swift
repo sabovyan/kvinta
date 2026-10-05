@@ -11,7 +11,7 @@ enum CLIError: LocalizedError {
 }
 
 enum CLI {
-    static let version = "0.1.3"
+    static let version = "0.1.4"
 
     static func run(arguments: [String]) throws {
         guard let command = arguments.first else {

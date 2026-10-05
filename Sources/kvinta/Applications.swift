@@ -53,6 +53,7 @@ enum Applications {
             if NSWorkspace.shared.frontmostApplication?.processIdentifier == running.processIdentifier {
                 running.hide()
             } else {
+                running.unhide()
                 running.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
             }
             return
