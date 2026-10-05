@@ -7,6 +7,8 @@ _kvinta() {
         'start:Start Kvinta without changing a running session'
         'stop:Stop Kvinta'
         'quit:Stop Kvinta (alias for stop)'
+        'pause:Pause keyboard interception'
+        'resume:Resume keyboard interception'
         'reload:Reload the configuration'
         'version:Show the installed version'
         'help:Show available commands'

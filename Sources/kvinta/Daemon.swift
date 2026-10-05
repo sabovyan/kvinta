@@ -44,7 +44,11 @@ final class DaemonContext: NSObject {
     }
 
     @objc func togglePause() {
-        userPaused.toggle()
+        setUserPaused(!userPaused)
+    }
+
+    func setUserPaused(_ paused: Bool) {
+        userPaused = paused
         updateEventTap()
     }
 
@@ -168,6 +172,8 @@ enum Daemon {
 
     static func run() throws -> Never {
         signal(SIGHUP, SIG_IGN)
+        signal(SIGUSR2, SIG_IGN)
+        signal(SIGCONT, SIG_IGN)
         let application = NSApplication.shared
         application.setActivationPolicy(.accessory)
         if !AccessibilityPermission.request() {
@@ -215,6 +221,18 @@ enum Daemon {
         }
         pauseSource.resume()
 
+        let userPauseSource = DispatchSource.makeSignalSource(signal: SIGUSR2, queue: .main)
+        userPauseSource.setEventHandler {
+            context.setUserPaused(true)
+        }
+        userPauseSource.resume()
+
+        let userResumeSource = DispatchSource.makeSignalSource(signal: SIGCONT, queue: .main)
+        userResumeSource.setEventHandler {
+            context.setUserPaused(false)
+        }
+        userResumeSource.resume()
+
         signal(SIGTERM, SIG_IGN)
         signal(SIGINT, SIG_IGN)
         let terminateSource = DispatchSource.makeSignalSource(signal: SIGTERM, queue: .main)
@@ -225,7 +243,7 @@ enum Daemon {
         terminateSource.resume()
         interruptSource.resume()
 
-        withExtendedLifetime((context, reloadSource, pauseSource, terminateSource, interruptSource)) {
+        withExtendedLifetime((context, reloadSource, pauseSource, userPauseSource, userResumeSource, terminateSource, interruptSource)) {
             application.run()
         }
         fatalError("Daemon run loop exited unexpectedly")
@@ -250,6 +268,18 @@ enum Daemon {
     static func stop() throws {
         guard sendSignal("SIGTERM") else {
             throw CLIError.message("Could not stop Kvinta. The background process may not be running.")
+        }
+    }
+
+    static func pause() throws {
+        guard sendSignal("SIGUSR2") else {
+            throw CLIError.message("Could not pause Kvinta. The background process may not be running.")
+        }
+    }
+
+    static func resume() throws {
+        guard sendSignal("SIGCONT") else {
+            throw CLIError.message("Could not resume Kvinta. The background process may not be running.")
         }
     }
 

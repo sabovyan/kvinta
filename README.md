@@ -33,6 +33,8 @@ Use `kvinta stop` or its alias `kvinta quit` to request graceful shutdown from T
 
 ## Pause or quit with the mouse
 
+You can also use `kvinta pause` and `kvinta resume` from Terminal. They set the same pause state as the menu; repeating either command leaves that state unchanged. Pause persists through reloads and shortcut capture until you explicitly resume. Resume during capture waits for capture to finish before interception becomes active. These commands require a running daemon and report an error if the request cannot be sent.
+
 Click the Kvinta icon in the menu bar to open Kvinta’s menu. Choose **Pause** to disable keyboard interception, **Resume** to enable it again, or **Quit Kvinta** to stop the daemon. The icon has a green checkmark badge when shortcuts are active and a gray pause badge when interception is disabled.
 
 A user pause stays in effect until you choose Resume, including during configuration reloads and after shortcut capture finishes. Restarting the daemon starts a new active session. After quitting, run `kvinta start` in Terminal, open Kvinta from Spotlight, or open `~/Applications/Kvinta.app` in Finder to start it again. These entry points use the same launchd-managed daemon. It also starts at the next login.

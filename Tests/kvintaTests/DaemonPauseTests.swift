@@ -32,6 +32,35 @@ struct DaemonPauseTests {
         #expect(context.shouldIntercept)
     }
 
+    @Test func explicitPauseAndResumeAreIdempotentAndShareMenuState() {
+        let context = DaemonContext(configuration: configuration)
+        context.setUserPaused(true)
+        context.setUserPaused(true)
+        context.reload(configuration: configuration)
+        #expect(context.userPaused)
+        #expect(!context.shouldIntercept)
+        context.togglePause()
+        #expect(context.shouldIntercept)
+        context.togglePause()
+        context.setUserPaused(false)
+        context.setUserPaused(false)
+        #expect(!context.userPaused)
+        #expect(context.shouldIntercept)
+    }
+
+    @Test func explicitResumePreservesCapturePauseAndItsTimeout() {
+        let context = DaemonContext(configuration: configuration)
+        context.pauseForCapture()
+        let generation = context.pauseGeneration
+        context.setUserPaused(true)
+        context.setUserPaused(false)
+        context.setUserPaused(false)
+        #expect(context.capturePaused)
+        #expect(!context.shouldIntercept)
+        context.finishCapturePause(generation: generation)
+        #expect(context.shouldIntercept)
+    }
+
     @Test func captureTimeoutCannotUndoUserPause() {
         let context = DaemonContext(configuration: configuration)
         context.pauseForCapture()

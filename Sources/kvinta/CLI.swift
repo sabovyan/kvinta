@@ -51,6 +51,12 @@ enum CLI {
         case "stop", "quit":
             try Daemon.stop()
             print("Kvinta stop requested.")
+        case "pause":
+            try Daemon.pause()
+            print("Kvinta pause requested.")
+        case "resume":
+            try Daemon.resume()
+            print("Kvinta resume requested.")
         case "reload": try reloadConfiguration()
         case "daemon": try Daemon.run()
         case "version", "--version", "-v": print("kvinta \(version)")
@@ -185,6 +191,8 @@ enum CLI {
           info   Show version, Hyper key, and bindings
           start  Start Kvinta without changing a running session
           stop   Stop Kvinta (alias: quit)
+          pause  Pause keyboard interception
+          resume Resume keyboard interception
           reload Reload the configuration
           version  Show the installed version
         """)
