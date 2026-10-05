@@ -1,6 +1,6 @@
 # <img src="Packaging/AppIcon.png" alt="Kvinta icon" width="30" height="30"> Kvinta
 
-Kvinta is a headless macOS utility that uses one physical modifier as Hyper and toggles applications with Hyper shortcuts.
+Kvinta is a menu-bar macOS utility that uses one physical modifier as Hyper and toggles applications with Hyper shortcuts.
 
 ## Install locally
 
@@ -8,7 +8,7 @@ Kvinta is a headless macOS utility that uses one physical modifier as Hyper and 
 ./scripts/install.sh
 ```
 
-The installer places the headless app in `~/Applications/Kvinta.app`, links the CLI at `~/.local/bin/kvinta`, registers the daemon with launchd, and enables Zsh command completion in new terminal sessions.
+The installer places the app in `~/Applications/Kvinta.app`, links the CLI at `~/.local/bin/kvinta`, registers the daemon with launchd, and enables Zsh command completion in new terminal sessions.
 
 A stable code-signing identity is required so macOS preserves Accessibility permission across updates. The installer uses the first available code-signing identity, or one provided through `KVINTA_SIGNING_IDENTITY`.
 
@@ -25,3 +25,11 @@ kvinta --version
 macOS will request Accessibility permission for keyboard interception. Configuration is stored in `~/.config/kvinta/config.toml`.
 
 You can also edit `~/.config/kvinta/config.toml` manually. After saving your changes, run `kvinta reload` to load the new configuration.
+
+## Pause or quit with the mouse
+
+Click the keyboard icon in the menu bar to open Kvinta’s menu. Choose **Pause** to disable keyboard interception, **Resume** to enable it again, or **Quit Kvinta** to stop the daemon. The icon changes to a pause symbol when interception is disabled.
+
+A user pause stays in effect until you choose Resume, including during configuration reloads and after shortcut capture finishes. Restarting the daemon starts a new active session. After quitting, run `kvinta reload` to start it again, or it will start at the next login.
+
+If Kvinta blocks typing, use the menu with the mouse to pause or quit. If the entire process becomes unresponsive and the menu cannot open, use Activity Monitor to force quit `kvinta`.
