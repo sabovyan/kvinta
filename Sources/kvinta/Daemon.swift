@@ -78,11 +78,32 @@ final class DaemonContext: NSObject {
         stateMenuItem?.title = state
         pauseMenuItem?.title = userPaused ? "Resume" : "Pause"
         if let button = statusItem?.button {
-            let image = shouldIntercept
-                ? NSImage(named: NSImage.applicationIconName)?.copy() as? NSImage
-                : NSImage(systemSymbolName: "pause.circle", accessibilityDescription: state)
-            image?.size = NSSize(width: 18, height: 18)
-            image?.isTemplate = !shouldIntercept
+            let active = shouldIntercept
+            let image = NSImage(named: NSImage.applicationIconName).map { icon in
+                NSImage(size: NSSize(width: 18, height: 18), flipped: false) { _ in
+                    icon.draw(in: NSRect(x: 0, y: 0, width: 18, height: 18), from: .zero, operation: .sourceOver, fraction: 1)
+                    let badge = NSBezierPath(ovalIn: NSRect(x: 9, y: 0, width: 9, height: 9))
+                    (active ? NSColor.systemGreen : NSColor.systemGray).setFill()
+                    badge.fill()
+                    NSColor.white.setStroke()
+                    NSColor.white.setFill()
+                    if active {
+                        let check = NSBezierPath()
+                        check.move(to: NSPoint(x: 11, y: 4.5))
+                        check.line(to: NSPoint(x: 13, y: 2.5))
+                        check.line(to: NSPoint(x: 16, y: 6.5))
+                        check.lineWidth = 1.2
+                        check.lineCapStyle = .round
+                        check.lineJoinStyle = .round
+                        check.stroke()
+                    } else {
+                        NSBezierPath(roundedRect: NSRect(x: 11.5, y: 2, width: 1.3, height: 5), xRadius: 0.4, yRadius: 0.4).fill()
+                        NSBezierPath(roundedRect: NSRect(x: 14.2, y: 2, width: 1.3, height: 5), xRadius: 0.4, yRadius: 0.4).fill()
+                    }
+                    return true
+                }
+            }
+            image?.isTemplate = false
             button.image = image
             button.title = image == nil ? "K" : ""
             button.toolTip = "Kvinta — \(state)"

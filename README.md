@@ -28,7 +28,7 @@ You can also edit `~/.config/kvinta/config.toml` manually. After saving your cha
 
 ## Pause or quit with the mouse
 
-Click the Kvinta icon in the menu bar to open Kvinta’s menu. Choose **Pause** to disable keyboard interception, **Resume** to enable it again, or **Quit Kvinta** to stop the daemon. The icon changes to a pause symbol when interception is disabled.
+Click the Kvinta icon in the menu bar to open Kvinta’s menu. Choose **Pause** to disable keyboard interception, **Resume** to enable it again, or **Quit Kvinta** to stop the daemon. The icon has a green checkmark badge when shortcuts are active and a gray pause badge when interception is disabled.
 
 A user pause stays in effect until you choose Resume, including during configuration reloads and after shortcut capture finishes. Restarting the daemon starts a new active session. After quitting, run `kvinta reload` to start it again, or it will start at the next login.
 
