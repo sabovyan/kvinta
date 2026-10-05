@@ -10,6 +10,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(name: "kvinta", resources: [.copy("Resources/AppMetadata.plist")]),
+        .testTarget(name: "kvintaTests", dependencies: ["kvinta"]),
     ],
     swiftLanguageModes: [.v5]
 )
