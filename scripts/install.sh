@@ -52,7 +52,7 @@ fi
 rm -rf "$build_app"
 mkdir -p "$build_app/Contents/MacOS" "$build_app/Contents/Resources"
 cp "$project_dir/.build/release/kvinta" "$build_app/Contents/MacOS/kvinta"
-cp "$project_dir/Packaging/Info.plist" "$build_app/Contents/Info.plist"
+cp "$project_dir/Sources/kvinta/Resources/AppMetadata.plist" "$build_app/Contents/Info.plist"
 cp "$project_dir/Packaging/AppIcon.icns" "$build_app/Contents/Resources/AppIcon.icns"
 cp "$project_dir/Packaging/Assets.car" "$build_app/Contents/Resources/Assets.car"
 codesign --force --sign "$signing_identity" "$build_app"

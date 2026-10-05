@@ -11,7 +11,25 @@ enum CLIError: LocalizedError {
 }
 
 enum CLI {
-    static let version = "0.1.4"
+    static let version: String = {
+        if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String {
+            return version
+        }
+        let executableURL = (Bundle.main.executableURL ?? URL(fileURLWithPath: CommandLine.arguments[0]))
+            .resolvingSymlinksInPath()
+        let appURL = executableURL.deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        if appURL.pathExtension == "app",
+           let appBundle = Bundle(url: appURL),
+           let version = appBundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String {
+            return version
+        }
+        guard let url = Bundle.module.url(forResource: "AppMetadata", withExtension: "plist"),
+              let metadata = NSDictionary(contentsOf: url),
+              let version = metadata["CFBundleShortVersionString"] as? String else {
+            fatalError("Missing application version metadata")
+        }
+        return version
+    }()
 
     static func run(arguments: [String]) throws {
         guard let command = arguments.first else {
