@@ -33,7 +33,11 @@ enum CLI {
 
     static func run(arguments: [String]) throws {
         guard let command = arguments.first else {
-            printHelp()
+            if Bundle.main.bundleURL.pathExtension == "app" {
+                try Daemon.start()
+            } else {
+                printHelp()
+            }
             return
         }
 
@@ -41,6 +45,9 @@ enum CLI {
         case "key": try chooseHyperKey()
         case "add": try addBinding()
         case "info": try printInfo()
+        case "start":
+            try Daemon.start()
+            print("Kvinta start requested.")
         case "reload": try reloadConfiguration()
         case "daemon": try Daemon.run()
         case "version", "--version", "-v": print("kvinta \(version)")
@@ -173,6 +180,7 @@ enum CLI {
           key    Choose the physical Hyper key
           add    Capture a Hyper shortcut and choose an application
           info   Show version, Hyper key, and bindings
+          start  Start Kvinta without changing a running session
           reload Reload the configuration
           version  Show the installed version
         """)

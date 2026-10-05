@@ -167,6 +167,7 @@ enum Daemon {
     static let launchAgentTarget = "gui/\(getuid())/\(launchAgentLabel)"
 
     static func run() throws -> Never {
+        signal(SIGHUP, SIG_IGN)
         let application = NSApplication.shared
         application.setActivationPolicy(.accessory)
         if !AccessibilityPermission.request() {
@@ -197,7 +198,6 @@ enum Daemon {
         let source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
         CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
 
-        signal(SIGHUP, SIG_IGN)
         let reloadSource = DispatchSource.makeSignalSource(signal: SIGHUP, queue: .main)
         reloadSource.setEventHandler {
             do {
@@ -233,16 +233,17 @@ enum Daemon {
 
     static func reloadOrStart() throws {
         if sendSignal("SIGHUP") { return }
+        // A new daemon loads configuration during startup. Sending SIGHUP here
+        // can terminate it before its signal handler has been installed.
+        try start()
+    }
 
+    static func start() throws {
         guard FileManager.default.fileExists(atPath: launchAgentFile.path) else {
             throw CLIError.message("Background process is not installed. Run './scripts/install.sh'.")
         }
-        guard launchctl(["kickstart", "-k", launchAgentTarget]) else {
+        guard launchctl(["kickstart", launchAgentTarget]) else {
             throw CLIError.message("The background process did not start. Run './scripts/install.sh' again.")
-        }
-        usleep(100_000)
-        guard sendSignal("SIGHUP") else {
-            throw CLIError.message("The background process exited during startup. Check ~/Library/Logs/Kvinta.log.")
         }
     }
 
