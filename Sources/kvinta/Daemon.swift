@@ -6,6 +6,7 @@ import Foundation
 final class DaemonContext: NSObject {
     var configuration: Configuration
     var suppressedKeys: Set<CGKeyCode> = []
+    let toggleApplication: (String) -> Void
     var eventTap: CFMachPort?
     var pauseGeneration = 0
     private(set) var userPaused = false
@@ -16,8 +17,9 @@ final class DaemonContext: NSObject {
 
     var shouldIntercept: Bool { !userPaused && !capturePaused }
 
-    init(configuration: Configuration) {
+    init(configuration: Configuration, toggleApplication: @escaping (String) -> Void = Applications.toggle) {
         self.configuration = configuration
+        self.toggleApplication = toggleApplication
         super.init()
     }
 
@@ -76,7 +78,7 @@ final class DaemonContext: NSObject {
     }
 
     func updateEventTap() {
-        suppressedKeys.removeAll()
+        if !shouldIntercept { suppressedKeys.removeAll() }
         if let tap = eventTap { CGEvent.tapEnable(tap: tap, enable: shouldIntercept) }
         let state = userPaused ? "Shortcuts paused" : capturePaused ? "Capturing shortcut" : "Shortcuts active"
         stateMenuItem?.title = state
@@ -134,30 +136,43 @@ func daemonCallback(
     let context = Unmanaged<DaemonContext>.fromOpaque(userInfo).takeUnretainedValue()
 
     if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+        // Releases may have been missed while the tap was disabled. Fail open
+        // until a fresh key-down rather than retaining stale consumed presses.
+        context.suppressedKeys.removeAll()
         context.updateEventTap()
         return Unmanaged.passUnretained(event)
     }
 
-    guard context.shouldIntercept, let hyperKey = context.configuration.hyperKey else {
+    guard context.shouldIntercept else {
         return Unmanaged.passUnretained(event)
     }
     let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
+
+    if type == .keyUp, context.suppressedKeys.remove(keyCode) != nil {
+        return nil
+    }
+
+    if type == .keyDown {
+        if event.getIntegerValueField(.keyboardEventAutorepeat) != 0 {
+            return context.suppressedKeys.contains(keyCode) ? nil : Unmanaged.passUnretained(event)
+        }
+        // A fresh press also reconciles a release missed before this event.
+        context.suppressedKeys.remove(keyCode)
+    }
+
+    guard let hyperKey = context.configuration.hyperKey else {
+        return Unmanaged.passUnretained(event)
+    }
 
     if type == .flagsChanged, keyCode == hyperKey.keyCode {
         return nil
     }
 
-    if type == .keyDown, hyperKey.isPressed(in: event.flags) {
+    if type == .keyDown, hyperKey.isPressed(in: event.flags),
+       let key = KeyCodes.name(for: keyCode),
+       let binding = context.configuration.bindings.first(where: { $0.key == key }) {
         context.suppressedKeys.insert(keyCode)
-        if event.getIntegerValueField(.keyboardEventAutorepeat) == 0,
-           let key = KeyCodes.name(for: keyCode),
-           let binding = context.configuration.bindings.first(where: { $0.key == key }) {
-            Applications.toggle(bundleIdentifier: binding.app)
-        }
-        return nil
-    }
-
-    if type == .keyUp, context.suppressedKeys.remove(keyCode) != nil {
+        context.toggleApplication(binding.app)
         return nil
     }
 

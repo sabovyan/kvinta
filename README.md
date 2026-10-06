@@ -31,6 +31,12 @@ Use `kvinta start` to start a stopped daemon. If it is already running, start le
 
 Use `kvinta stop` or its alias `kvinta quit` to request graceful shutdown from Terminal, just like **Quit Kvinta** in the menu bar. If the stop request cannot be sent, the command reports an error. Run `kvinta start` to start it again; it also starts at the next login.
 
+## Shortcut behavior
+
+Kvinta consumes only configured Hyper shortcuts. Unbound combinations pass through unchanged, including their native modifier flags, so the receiving app may interpret them as Option, Control, or Command combinations rather than plain text.
+
+A configured shortcut toggles its app once per press. Its repeats and key release remain consumed even if Hyper is released first or the configuration is reloaded. A press that started without a matching shortcut stays pass-through for repeats and release. Pause and event-tap recovery clear press tracking because releases can be missed while interception is disabled; repeats after resuming do not trigger shortcuts until a fresh key press.
+
 ## Pause or quit with the mouse
 
 You can also use `kvinta pause` and `kvinta resume` from Terminal. They set the same pause state as the menu; repeating either command leaves that state unchanged. Pause persists through reloads and shortcut capture until you explicitly resume. Resume during capture waits for capture to finish before interception becomes active. These commands require a running daemon and report an error if the request cannot be sent.
